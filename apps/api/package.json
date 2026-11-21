@@ -1,0 +1,28 @@
+{
+  "name": "@rideway/api",
+  "private": true,
+  "scripts": {
+    "build": "prisma generate && tsc",
+    "start": "node dist/main.js",
+    "migrate": "prisma migrate deploy",
+    "seed": "node prisma/seed.cjs"
+  },
+  "dependencies": {
+    "@apollo/server": "5.5.2",
+    "@as-integrations/express5": "1.1.2",
+    "@nestjs/apollo": "13.4.5",
+    "@nestjs/common": "11.2.11",
+    "@nestjs/core": "11.2.11",
+    "@nestjs/graphql": "13.4.5",
+    "@nestjs/platform-express": "11.2.11",
+    "@prisma/client": "6.19.0",
+    "graphql": "16.15.0",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "prisma": "6.19.0",
+    "typescript": "5.9.3"
+  }
+}

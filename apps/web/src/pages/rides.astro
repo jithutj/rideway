@@ -1,0 +1,64 @@
+---
+interface Ride {
+  id: string;
+  title: string;
+  location: string;
+  startsAt: string;
+}
+
+let rides: Ride[] = [];
+let unavailable = false;
+try {
+  const response = await fetch(process.env.GRAPHQL_URL ?? 'http://127.0.0.1:4000/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: 'query { upcomingRides { id title location startsAt } }' }),
+    signal: AbortSignal.timeout(4000),
+  });
+  const result = await response.json();
+  if (!response.ok || result.errors?.length || !Array.isArray(result.data?.upcomingRides)) {
+    throw new Error('Invalid ride response');
+  }
+  rides = result.data.upcomingRides;
+} catch {
+  unavailable = true;
+  Astro.response.status = 503;
+}
+
+const formatDate = new Intl.DateTimeFormat('en-IN', {
+  dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata',
+});
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upcoming rides | Rideway</title>
+  </head>
+  <body class="min-h-screen bg-stone-100 text-stone-950">
+    <header class="border-b border-stone-200 bg-white">
+      <div class="mx-auto max-w-4xl px-5 py-5 text-xl font-bold">Rideway</div>
+    </header>
+    <main class="mx-auto max-w-4xl px-5 py-10">
+      <h1 class="mb-6 text-4xl font-bold tracking-tight">Upcoming rides</h1>
+      {unavailable ? <p>Rides are temporarily unavailable. Please try again shortly.</p> :
+        rides.length === 0 ? <p>No upcoming rides are listed yet.</p> :
+        <ul class="grid gap-4 sm:grid-cols-2">
+          {rides.map((ride) => (
+            <li class="rounded-xl border border-stone-200 bg-white p-5">
+              <h2 class="text-xl font-semibold">{ride.title}</h2>
+              <p class="mt-2 text-stone-700">{ride.location}</p>
+              <time datetime={ride.startsAt} class="mt-1 block text-stone-700">
+                {formatDate.format(new Date(ride.startsAt))} IST
+              </time>
+            </li>
+          ))}
+        </ul>
+      }
+    </main>
+  </body>
+</html>
+<style is:global>
+  @import "tailwindcss";
+</style>

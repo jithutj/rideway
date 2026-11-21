@@ -1,0 +1,52 @@
+name: rideway
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: rideway
+      POSTGRES_USER: rideway
+      POSTGRES_PASSWORD: local_dev_only
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "rideway", "-d", "rideway"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  api:
+    build:
+      context: .
+      target: api
+    environment:
+      DATABASE_URL: postgresql://rideway:local_dev_only@db:5432/rideway
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "npm run migrate -w @rideway/api && npm run seed -w @rideway/api && exec node apps/api/dist/main.js"]
+    ports:
+      - "127.0.0.1:4000:4000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/graphql',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({query:'{ upcomingRides { id } }'})}).then(async r=>{if(!r.ok||!(await r.json()).data?.upcomingRides)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      retries: 15
+  web:
+    build:
+      context: .
+      target: web
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4321
+      GRAPHQL_URL: http://api:4000/graphql
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:4321:4321"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321/rides').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+volumes:
+  pgdata:
