@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 
 const api = process.env.SMOKE_GRAPHQL_URL ?? 'http://127.0.0.1:4000/graphql';
 const web = process.env.SMOKE_WEB_URL ?? 'http://127.0.0.1:4321/rides';
+const admin = process.env.SMOKE_ADMIN_URL ?? 'http://127.0.0.1:4322';
 
 const response = await fetch(api, {
   method: 'POST',
@@ -18,4 +19,7 @@ assert.ok(Date.parse(ride.startsAt) > Date.now());
 const page = await fetch(web, { signal: AbortSignal.timeout(5000) });
 assert.equal(page.status, 200);
 assert.ok((await page.text()).includes(ride.title), 'Expected the seeded ride on /rides');
-console.log('Rideway smoke check passed: seeded ride found in GraphQL and /rides.');
+const adminPage = await fetch(admin, { signal: AbortSignal.timeout(5000) });
+assert.equal(adminPage.status, 200);
+assert.ok((await adminPage.text()).includes('Rideway Admin'), 'Expected the admin dashboard shell');
+console.log('Rideway smoke check passed: seeded ride found in GraphQL, /rides, and admin shell.');

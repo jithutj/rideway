@@ -3,6 +3,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
+COPY apps/admin/package.json apps/admin/package.json
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
 RUN npm ci
@@ -18,3 +19,9 @@ COPY apps/web apps/web
 RUN npm run build -w @rideway/web
 USER node
 CMD ["npm", "run", "start", "-w", "@rideway/web"]
+
+FROM base AS admin
+COPY apps/admin apps/admin
+RUN npm run build -w @rideway/admin
+USER node
+CMD ["npm", "run", "start", "-w", "@rideway/admin"]

@@ -1,0 +1,82 @@
+---
+const graphqlUrl = process.env.GRAPHQL_URL ?? 'http://127.0.0.1:4000/graphql';
+
+interface Ride {
+  id: string;
+  title: string;
+  location: string;
+  startsAt: string;
+}
+
+let rides: Ride[] = [];
+let apiHealthy = false;
+try {
+  const response = await fetch(graphqlUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: 'query { upcomingRides { id title location startsAt } }' }),
+    signal: AbortSignal.timeout(4000),
+  });
+  const result = await response.json();
+  if (response.ok && !result.errors && Array.isArray(result.data?.upcomingRides)) {
+    rides = result.data.upcomingRides;
+    apiHealthy = true;
+  }
+} catch {
+  apiHealthy = false;
+}
+
+const formatDate = new Intl.DateTimeFormat('en-IN', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'Asia/Kolkata',
+});
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rideway Admin</title>
+  </head>
+  <body class="min-h-screen bg-stone-100 text-stone-950">
+    <header class="border-b border-stone-200 bg-white">
+      <div class="mx-auto max-w-5xl px-5 py-5 text-xl font-bold">Rideway Admin</div>
+    </header>
+    <main class="mx-auto max-w-5xl px-5 py-10">
+      <h1 class="mb-6 text-3xl font-bold tracking-tight">Dashboard</h1>
+      <div class="rounded-xl border border-stone-200 bg-white p-6">
+        <p class="text-stone-700">Welcome to the Rideway staff dashboard.</p>
+        <div class="mt-4 flex items-center gap-2 text-sm">
+          <span>API status:</span>
+          {apiHealthy ? (
+            <span class="rounded bg-green-100 px-2 py-1 font-medium text-green-800">Connected</span>
+          ) : (
+            <span class="rounded bg-red-100 px-2 py-1 font-medium text-red-800">Unavailable</span>
+          )}
+        </div>
+      </div>
+      <section class="mt-8">
+        <h2 class="mb-4 text-xl font-semibold">Upcoming rides</h2>
+        {apiHealthy && rides.length > 0 ? (
+          <ul class="grid gap-4 sm:grid-cols-2">
+            {rides.map((ride) => (
+              <li class="rounded-xl border border-stone-200 bg-white p-5">
+                <h3 class="font-semibold">{ride.title}</h3>
+                <p class="mt-1 text-stone-700">{ride.location}</p>
+                <time datetime={ride.startsAt} class="mt-1 block text-sm text-stone-600">
+                  {formatDate.format(new Date(ride.startsAt))} IST
+                </time>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-stone-700">No upcoming rides to display.</p>
+        )}
+      </section>
+    </main>
+  </body>
+</html>
+<style is:global>
+  @import "tailwindcss";
+</style>

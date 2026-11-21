@@ -1,6 +1,6 @@
 # Rideway
 
-Dockerized starter for Rideway's first development slice. The mobile-first Astro page reads an upcoming motorcycle ride from **NestJS GraphQL → Prisma → PostgreSQL**.
+Dockerized starter for Rideway's first development slice. The public Astro app reads an upcoming motorcycle ride from **NestJS GraphQL → Prisma → PostgreSQL**. A separate staff dashboard app is scaffolded for organizers and administrators.
 
 ## Open in VS Code
 
@@ -8,13 +8,20 @@ Extract the archive and open the `rideway` folder in VS Code. Install Docker wit
 
 ```sh
 docker compose up --build --wait
-docker compose exec web node --version
 node scripts/smoke.mjs
 ```
 
-Open [Upcoming rides](http://localhost:4321/rides). The GraphQL endpoint is [localhost:4000/graphql](http://localhost:4000/graphql) and accepts POST requests. Compose applies migrations and refreshes the local sample ride date at API startup. The database volume persists across `docker compose down`. The example credentials and seed are for local development.
+## Local apps
 
-After code changes run `docker compose up --build --wait` again. Use `docker compose logs api web` to inspect startup failures. To stop the stack, run `docker compose down`.
+| App | URL | Purpose |
+| --- | --- | --- |
+| `web` | [localhost:4321](http://localhost:4321/rides) | Public rider pages |
+| `admin` | [localhost:4322](http://localhost:4322) | Staff/admin dashboard |
+| `api` | [localhost:4000/graphql](http://localhost:4000/graphql) | NestJS GraphQL API |
+
+The GraphQL endpoint accepts POST requests. Compose applies migrations and refreshes the local sample ride date at API startup. The database volume persists across `docker compose down`. The example credentials and seed are for local development.
+
+After code changes run `docker compose up --build --wait` again. Use `docker compose logs api web admin` to inspect startup failures. To stop the stack, run `docker compose down`.
 
 ## Push to GitHub
 

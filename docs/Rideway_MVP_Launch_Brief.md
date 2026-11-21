@@ -24,7 +24,7 @@
 
 | Layer | MVP decision |
 | --- | --- |
-| Frontend | One mobile-first Astro PWA using TypeScript, Tailwind and Astro’s Vite build. Use separate routes and layouts for riders, organizers and administrators. |
+| Frontend | Two Astro apps: a mobile-first public PWA in `apps/web` for riders, and a separate staff dashboard in `apps/admin` for organizers and administrators. Both use TypeScript, Tailwind and Astro’s Vite build. |
 | Backend | One headless NestJS application on Node.js with a central GraphQL API for all interfaces. Keep authorization and business rules in backend services. |
 | Data | PostgreSQL and Prisma ORM. Version the Prisma schema and migrations in Git. Use foreign keys and a unique event/rider registration constraint. |
 | Hosting | One VPS and one HTTPS reverse proxy for Astro and GraphQL. Use Docker Compose locally and in production. No Supabase or serverless hosting. |
